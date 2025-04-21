@@ -1,8 +1,8 @@
 module wirekcp
 
-go 1.21
+go 1.21.0
 
-toolchain go1.22.4
+toolchain go1.23.3
 
 require (
 	golang.org/x/crypto v0.27.0 // indirect
@@ -45,6 +45,7 @@ require (
 	github.com/muesli/ansi v0.0.0-20230316100256-276c6243b2f6 // indirect
 	github.com/muesli/cancelreader v0.2.2 // indirect
 	github.com/muesli/termenv v0.15.3-0.20240618155329-98d742f6907a // indirect
+	github.com/pelletier/go-toml/v2 v2.2.4 // indirect
 	github.com/rivo/uniseg v0.4.7 // indirect
 	golang.org/x/term v0.24.0 // indirect
 	golang.org/x/text v0.18.0 // indirect

@@ -12,8 +12,7 @@ import (
 
 const (
 	// ExitSetupFailed defines exit code
-	ExitSetupFailed   = 1
-	DefaultConfigPath = ""
+	ExitSetupFailed = 1
 )
 
 var (
@@ -22,6 +21,7 @@ var (
 	logLevel          string
 	defaultLogFile    string
 	logFile           string
+	logIntLevel       int
 
 	client       *wgctrl.Client
 	clientDevice *wgtypes.Device
@@ -66,8 +66,19 @@ func init() {
 	}
 
 	rootCmd.PersistentFlags().StringVar(&configPath, "config", defaultConfigPath, "WireKCP config file location")
-	rootCmd.PersistentFlags().StringVar(&logLevel, "log-level", "info", "sets WireKCP log level")
-	rootCmd.PersistentFlags().StringVar(&logFile, "log-file", defaultLogFile, "sets WireKCP log path. If console is specified the the log will be output to stdout")
+	rootCmd.PersistentFlags().StringVar(&logLevel, "logLevel", "info", "sets WireKCP log level. Options: info, error")
+	rootCmd.PersistentFlags().StringVar(&logFile, "logFile", defaultLogFile, "sets WireKCP log path. If console is specified the the log will be output to stdout")
+
+	switch logLevel {
+	case "debug":
+	case "info":
+		logIntLevel = 2
+	case "error":
+		logIntLevel = 1
+	default:
+		logIntLevel = 0
+	}
+
 	rootCmd.AddCommand(serviceCmd)
 	rootCmd.AddCommand(upCmd)
 	rootCmd.AddCommand(configCmd)

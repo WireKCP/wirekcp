@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"errors"
 	"wirekcp/frontend"
 	"wirekcp/wirekcfg"
 	"wirekcp/wirektun"
@@ -22,10 +23,15 @@ var (
 			}
 			config := frontend.InterfaceForm(*clientDevice)
 			if config == nil {
-				return nil
+				return errors.New("invalid configuration")
 			}
-			wirektun.SetIPwithoutTun(config.IPv4CIDR)
-			return client.ConfigureDevice(clientDevice.Name, *config.ToWgConfig())
+			if err := client.ConfigureDevice(clientDevice.Name, *config.ToWgConfig()); err != nil {
+				return err
+			}
+			if err := wirektun.SetIPwithoutTun(config.IPv4CIDR); err != nil {
+				return err
+			}
+			return config.ChangeInterface(configPath)
 		},
 	}
 	peerCmd = &cobra.Command{
@@ -64,7 +70,15 @@ var (
 				return err
 			}
 			config := frontend.PeerForm()
-			return client.ConfigureDevice(clientDevice.Name, config)
+			if err := client.ConfigureDevice(clientDevice.Name, config); err != nil {
+				return err
+			}
+			fileConfig, err := wirekcfg.ReadFromFile(configPath)
+			if err != nil {
+				return err
+			}
+			fileConfig.Peers = wirekcfg.ToWkPeersConfig(config.Peers)
+			return fileConfig.WriteToFile(configPath)
 		},
 	}
 
@@ -77,8 +91,16 @@ var (
 			if err := frontend.ValidateDeviceExists(client, wirektun.DefaultTunName()); err != nil {
 				return err
 			}
-			peer := frontend.PeerEditForm(clientDevice)
-			return client.ConfigureDevice(clientDevice.Name, peer)
+			config := frontend.PeerEditForm(clientDevice)
+			if err := client.ConfigureDevice(clientDevice.Name, config); err != nil {
+				return err
+			}
+			fileConfig, err := wirekcfg.ReadFromFile(configPath)
+			if err != nil {
+				return err
+			}
+			fileConfig.Peers = wirekcfg.ToWkPeersConfig(config.Peers)
+			return fileConfig.WriteToFile(configPath)
 		},
 	}
 
@@ -96,9 +118,22 @@ var (
 				return nil
 			}
 			config := wirekcfg.ToDeletePeerConfig(peer)
-			return client.ConfigureDevice(clientDevice.Name, wgtypes.Config{
+			if err := client.ConfigureDevice(clientDevice.Name, wgtypes.Config{
 				Peers: []wgtypes.PeerConfig{config},
-			})
+			}); err != nil {
+				return err
+			}
+			fileConfig, err := wirekcfg.ReadFromFile(configPath)
+			if err != nil {
+				return err
+			}
+			for i, p := range fileConfig.Peers {
+				if p.PublicKey == peer {
+					fileConfig.Peers = append(fileConfig.Peers[:i], fileConfig.Peers[i+1:]...)
+					break
+				}
+			}
+			return fileConfig.WriteToFile(configPath)
 		},
 	}
 )

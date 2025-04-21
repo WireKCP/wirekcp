@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+
 	"wirekcp/wgengine"
 	"wirekcp/wirektun"
 
@@ -17,11 +18,11 @@ var (
 			var err error
 			interfaceName := wirektun.DefaultTunName()
 			logger := device.NewLogger(
-				device.LogLevelVerbose,
+				logIntLevel,
 				fmt.Sprintf("(%s) ", interfaceName),
 			)
 			var engine wgengine.Engine
-			engine, err = wgengine.NewUserspaceEngine(logger, interfaceName, defaultPort())
+			engine, err = wgengine.NewUserspaceEngine(logger, interfaceName, defaultPort(), configPath, logFile)
 			if err != nil {
 				logger.Errorf("Failed to create userspace engine: %v", err)
 				return err
@@ -42,6 +43,3 @@ var (
 		},
 	}
 )
-
-func init() {
-}

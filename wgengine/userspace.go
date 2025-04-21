@@ -3,6 +3,8 @@ package wgengine
 import (
 	"fmt"
 	"net"
+	"os"
+	"path/filepath"
 	"sync"
 
 	// "wirekcp/ipc/namedpipe"
@@ -22,6 +24,10 @@ type EngineConfig struct {
 	TUN tun.Device
 	// ListenPort is the port on which the engine will listen.
 	ListenPort uint16
+	// ConfigPath is the path to the WireKCP configuration file.
+	configPath string
+	// LogPath is the path to the WireKCP log file.
+	logPath string
 	// EchoRespondToAll determines whether ICMP Echo requests incoming from WireKCP peers
 	// will be intercepted and responded to, regardless of the source host.
 	EchoRespondToAll bool
@@ -55,7 +61,7 @@ type userspaceEngine struct {
 	// Lock ordering: wgLock, then mu.
 }
 
-func NewUserspaceEngine(logger *device.Logger, tunname string, listenPort uint16) (Engine, error) {
+func NewUserspaceEngine(logger *device.Logger, tunname string, listenPort uint16, config, logPath string) (Engine, error) {
 	if tunname == "" {
 		return nil, fmt.Errorf("--tun name must not be blank")
 	}
@@ -74,6 +80,8 @@ func NewUserspaceEngine(logger *device.Logger, tunname string, listenPort uint16
 		Logger:     logger,
 		TUN:        tun,
 		ListenPort: listenPort,
+		configPath: config,
+		logPath:    logPath,
 	}
 
 	e, err := newUserspaceEngineAdvanced(conf)
@@ -125,17 +133,39 @@ func newUserspaceEngineAdvanced(conf EngineConfig) (Engine, error) {
 
 	e.logger.Verbosef("UAPI listener started")
 
-	var ifconfig wirekcfg.Config
+	var ifconfig *wirekcfg.Config
 
-	ifconfig.IPv4CIDR = "192.168.200.1/24"
+	if _, err = os.Stat(conf.configPath); os.IsNotExist(err) {
+		// If the Directory does not exist, create it
+		configFolderPath := filepath.Dir(conf.configPath)
+		if err := os.MkdirAll(configFolderPath, 0755); err != nil {
+			e.logger.Errorf("Failed to create config directory: %v", err)
+			e.Close()
+			return nil, err
+		}
+		ifconfig = &wirekcfg.Config{
+			IPv4CIDR:   "192.168.200.1/24",
+			ListenPort: int(conf.ListenPort),
+			PrivateKey: wirektypes.GeneratePrivateKey(),
+		}
+		err = ifconfig.WriteToFile(conf.configPath)
+		if err != nil {
+			e.logger.Errorf("Failed to write config file: %v", err)
+			e.Close()
+			return nil, err
+		}
+	} else {
+		ifconfig, err = wirekcfg.ReadFromFile(conf.configPath)
+		if err != nil {
+			e.logger.Errorf("Failed to read config file: %v", err)
+			e.Close()
+			return nil, err
+		}
+	}
 
-	ifconfig.ListenPort = int(conf.ListenPort)
+	wirekcfg.SetIP(e.tundev, ifconfig)
 
-	ifconfig.PrivateKey = wirektypes.GeneratePrivateKey()
-
-	wirekcfg.SetIP(e.tundev, &ifconfig)
-
-	wirekcfg.ConfigureDevice(tunname, ifconfig)
+	wirekcfg.ConfigureDevice(tunname, *ifconfig)
 
 	select {
 	case <-errs:
