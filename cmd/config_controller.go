@@ -28,7 +28,7 @@ var (
 			if err := client.ConfigureDevice(clientDevice.Name, *config.ToWgConfig()); err != nil {
 				return err
 			}
-			if err := wirektun.SetIPwithoutTun(config.IPv4CIDR); err != nil {
+			if err := wirekcfg.SetIPwithoutTun(config.IPv4CIDR); err != nil {
 				return err
 			}
 			return config.ChangeInterface(configPath)

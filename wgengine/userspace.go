@@ -26,8 +26,6 @@ type EngineConfig struct {
 	ListenPort uint16
 	// ConfigPath is the path to the WireKCP configuration file.
 	configPath string
-	// LogPath is the path to the WireKCP log file.
-	logPath string
 	// EchoRespondToAll determines whether ICMP Echo requests incoming from WireKCP peers
 	// will be intercepted and responded to, regardless of the source host.
 	EchoRespondToAll bool
@@ -61,7 +59,7 @@ type userspaceEngine struct {
 	// Lock ordering: wgLock, then mu.
 }
 
-func NewUserspaceEngine(logger *device.Logger, tunname string, listenPort uint16, config, logPath string) (Engine, error) {
+func NewUserspaceEngine(logger *device.Logger, tunname string, listenPort uint16, config string) (Engine, error) {
 	if tunname == "" {
 		return nil, fmt.Errorf("--tun name must not be blank")
 	}
@@ -81,7 +79,6 @@ func NewUserspaceEngine(logger *device.Logger, tunname string, listenPort uint16
 		TUN:        tun,
 		ListenPort: listenPort,
 		configPath: config,
-		logPath:    logPath,
 	}
 
 	e, err := newUserspaceEngineAdvanced(conf)

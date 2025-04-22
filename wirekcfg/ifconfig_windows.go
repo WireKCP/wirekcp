@@ -5,8 +5,11 @@ package wirekcfg
 import (
 	"errors"
 	"fmt"
+	"net"
 	"net/netip"
+	"os/exec"
 	"wirekcp/wgengine/winnet"
+	"wirekcp/wirektun"
 
 	ole "github.com/go-ole/go-ole"
 	"github.com/wirekcp/wireguard-go/tun"
@@ -25,14 +28,37 @@ func SetIP(tunnel tun.Device, config *Config) error {
 		if err != nil {
 			return err
 		}
-		_, err = setPrivateNetwork(link)
-		if err != nil {
-			return err
-		}
+		go func() {
+			const tries = 20
+			for range tries {
+				found, err := setPrivateNetwork(link)
+				if err != nil {
+					sucess, _ := setPrivateNetworkusingPowershell()
+					if sucess {
+						break
+					}
+					continue
+				}
+				if found {
+					break
+				}
+			}
+		}()
 	} else {
 		return errors.New("tunnel is not a NativeTun")
 	}
 	return nil
+}
+
+func SetIPwithoutTun(cidr string) error {
+	ip, network, _ := net.ParseCIDR(cidr)
+	mask := network.Mask
+	subnet := fmt.Sprintf("%d.%d.%d.%d", mask[0], mask[1], mask[2], mask[3])
+	cmd := exec.Command("netsh", "interface", "ip", "set", "address", "name="+wirektun.DefaultTunName(), "static", ip.String(), subnet)
+	if err := cmd.Run(); err != nil {
+		return err
+	}
+	return setPrivateNetworkusingPowershellwithBackground()
 }
 
 func setPrivateNetwork(ifcLUID winipcfg.LUID) (bool, error) {
@@ -93,4 +119,18 @@ func setPrivateNetwork(ifcLUID winipcfg.LUID) (bool, error) {
 	}
 
 	return false, nil
+}
+
+func setPrivateNetworkusingPowershell() (bool, error) {
+	cmd := fmt.Sprintf("Set-NetConnectionProfile -Name %s -NetworkCategory Private", wirektun.DefaultTunName())
+	err := exec.Command("powershell", "-Command", cmd).Run()
+	if err != nil {
+		return false, fmt.Errorf("RunPowershellCommand: %v", err)
+	}
+	return true, nil
+}
+
+func setPrivateNetworkusingPowershellwithBackground() error {
+	cmd := fmt.Sprintf("Set-NetConnectionProfile -Name %s -NetworkCategory Private", wirektun.DefaultTunName())
+	return exec.Command("powershell", "-Command", cmd).Start()
 }

@@ -3,10 +3,6 @@
 package wirektun
 
 import (
-	"fmt"
-	"net"
-	"os/exec"
-
 	"github.com/wirekcp/wireguard-go/tun"
 	"golang.org/x/sys/windows"
 	"golang.zx2c4.com/wireguard/windows/tunnel/winipcfg"
@@ -31,12 +27,4 @@ func interfaceName(dev tun.Device) (string, error) {
 		return "", err
 	}
 	return guid.String(), nil
-}
-
-func SetIPwithoutTun(cidr string) error {
-	ip, network, _ := net.ParseCIDR(cidr)
-	mask := network.Mask
-	subnet := fmt.Sprintf("%d.%d.%d.%d", mask[0], mask[1], mask[2], mask[3])
-	cmd := exec.Command("netsh", "interface", "ip", "set", "address", "name="+DefaultTunName(), "static", ip.String(), subnet)
-	return cmd.Run()
 }
