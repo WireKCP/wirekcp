@@ -87,6 +87,7 @@ func init() {
 	rootCmd.AddCommand(serviceCmd)
 	rootCmd.AddCommand(upCmd)
 	rootCmd.AddCommand(configCmd)
+	rootCmd.AddCommand(keyCmd)
 	configCmd.AddCommand(interfaceCmd, peerCmd)
 	peerCmd.AddCommand(peerAddCmd, peerEditCmd, peerDeleteCmd)
 	serviceCmd.AddCommand(runCmd, startCmd, stopCmd, restartCmd) // service control commands are subcommands of service
