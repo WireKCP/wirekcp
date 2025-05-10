@@ -48,7 +48,7 @@ var (
 				cmd.PrintErrln(err)
 				return
 			}
-			cmd.Printf("Wirekcp service has been installed")
+			cmd.Println("Wirekcp service has been installed")
 		},
 	}
 )
@@ -74,7 +74,7 @@ var (
 				cmd.PrintErrln(err)
 				return
 			}
-			cmd.Printf("Wirekcp has been uninstalled")
+			cmd.Println("Wirekcp has been uninstalled")
 		},
 	}
 )

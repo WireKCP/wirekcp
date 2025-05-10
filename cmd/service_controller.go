@@ -3,14 +3,14 @@ package cmd
 import (
 	"runtime"
 
+	"github.com/charmbracelet/log"
 	"github.com/kardianos/service"
-	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
 
 func (p *program) Start(s service.Service) error {
 	// Start should not block. Do the actual work async.
-	log.Info("starting service") //nolint
+	log.Infof("Starting service %s", s.String())
 	go p.run()
 	return nil
 }
@@ -48,7 +48,7 @@ var (
 				cmd.PrintErrln(err)
 				return
 			}
-			cmd.Printf("Wirekcp service is running")
+			cmd.Println("Wirekcp service is running")
 		},
 	}
 )
@@ -74,7 +74,7 @@ var (
 				cmd.PrintErrln(err)
 				return
 			}
-			cmd.Printf("Wirekcp service has been started")
+			cmd.Println("Wirekcp service has been started")
 		},
 	}
 )
@@ -100,7 +100,7 @@ var (
 				cmd.PrintErrln(err)
 				return
 			}
-			cmd.Printf("Wirekcp service has been stopped")
+			cmd.Println("Wirekcp service has been stopped")
 		},
 	}
 )
@@ -121,7 +121,7 @@ var (
 				cmd.PrintErrln(err)
 				return
 			}
-			cmd.Printf("Wirekcp service has been restarted")
+			cmd.Println("Wirekcp service has been restarted")
 		},
 	}
 )
