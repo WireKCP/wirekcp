@@ -11,14 +11,17 @@ import (
 func (p *program) Start(s service.Service) error {
 	// Start should not block. Do the actual work async.
 	log.Info("starting service") //nolint
-	go func() {
-		err := upCmd.RunE(p.cmd, p.args)
-		if err != nil {
-			stopCh <- 0
-			return
-		}
-	}()
+	go p.run()
 	return nil
+}
+
+func (p *program) run() {
+	// Run the service
+	err := upCmd.RunE(p.cmd, p.args)
+	if err != nil {
+		stopCh <- 0
+		return
+	}
 }
 
 func (p *program) Stop(s service.Service) error {
@@ -31,12 +34,10 @@ var (
 		Use:   "run",
 		Short: "runs wirekcp as service",
 		Run: func(cmd *cobra.Command, args []string) {
-
 			prg := &program{
 				cmd:  cmd,
 				args: args,
 			}
-
 			s, err := newSVC(prg, newSVCConfig())
 			if err != nil {
 				cmd.PrintErrln(err)

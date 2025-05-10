@@ -13,6 +13,9 @@ import (
 const (
 	// ExitSetupFailed defines exit code
 	ExitSetupFailed = 1
+
+	flgaLogLevel = "logLevel"
+	flgaLogFile  = "logFile"
 )
 
 var (
@@ -67,8 +70,8 @@ func init() {
 	}
 
 	rootCmd.PersistentFlags().StringVar(&configPath, "config", defaultConfigPath, "WireKCP config file location")
-	rootCmd.PersistentFlags().StringVar(&logLevel, "logLevel", "info", "sets WireKCP log level. Options: info, error")
-	rootCmd.PersistentFlags().StringVar(&logFile, "logFile", defaultLogFile, "sets WireKCP log path.")
+	rootCmd.PersistentFlags().StringVar(&logLevel, flgaLogLevel, "info", "sets WireKCP log level. Options: info, error")
+	rootCmd.PersistentFlags().StringVar(&logFile, flgaLogFile, defaultLogFile, "sets WireKCP log path.")
 	rootCmd.PersistentFlags().BoolVarP(&foreground, "foreground", "f", false, "run in foreground mode. If set to true the WireKCP will not run as a service.")
 
 	switch logLevel {

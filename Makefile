@@ -19,6 +19,15 @@ clean:
 linux:
 	GOOS=linux GOARCH=amd64 go build -o $(TARGET_EXEC)
 
+darwin:
+	GOOS=darwin GOARCH=amd64 go build -o $(TARGET_EXEC)
+
+darwin-arm64:
+	GOOS=darwin GOARCH=arm64 go build -o $(TARGET_EXEC)
+
+freebsd:
+	GOOS=freebsd GOARCH=amd64 go build -o $(TARGET_EXEC)
+
 windows:
 	GOOS=windows GOARCH=amd64 go build -o $(TARGET_EXEC)$(FILE_EXTENSION)
 

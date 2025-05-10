@@ -21,8 +21,10 @@ var (
 				"run",
 				"--config",
 				configPath,
-				"--log-level",
+				"--" + flgaLogLevel,
 				logLevel,
+				"--" + flgaLogFile,
+				logFile,
 			}
 
 			if runtime.GOOS == "linux" {

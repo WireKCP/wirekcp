@@ -17,7 +17,7 @@ func init() {
 	tun.WintunStaticRequestedGUID = &guid
 	// ipc.UAPISecurityDescriptor, err = windows.SecurityDescriptorFromString("O:SYD:P(A;;GA;;;SY)(A;;GA;;;BA)S:(ML;;NWNRNX;;;HI)")
 	// if err != nil {
-	// 	panic(err)
+	// panic(err)
 	// }
 }
 

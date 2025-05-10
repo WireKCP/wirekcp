@@ -6,6 +6,7 @@ import (
 	"wirekcp/wgengine"
 	"wirekcp/wireklog"
 	"wirekcp/wirektun"
+	"wirekcp/wirekutils"
 
 	"github.com/spf13/cobra"
 	"github.com/wirekcp/wireguard-go/device"
@@ -35,6 +36,10 @@ var (
 					fmt.Sprintf("(%s) ", interfaceName),
 					fd,
 				)
+			}
+			if err := wirekutils.CheckOrInstallWinTun(); err != nil {
+				logger.Errorf("Failed to check or install Wintun: %v", err)
+				return err
 			}
 			var engine wgengine.Engine
 			engine, err = wgengine.NewUserspaceEngine(logger, interfaceName, defaultPort(), configPath)
