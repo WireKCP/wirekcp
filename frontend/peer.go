@@ -86,6 +86,9 @@ func PeerEditForm(device *wgtypes.Device) wgtypes.Config {
 func PeerDeleteForm(device *wgtypes.Device) string {
 	var peer string
 	options := make([]huh.Option[string], len(device.Peers))
+	if len(device.Peers) != 0 {
+		peer = device.Peers[0].PublicKey.String()
+	}
 	for i, p := range device.Peers {
 		if p.Endpoint == nil {
 			label := "Peer: " + "Server for " + p.PublicKey.String()

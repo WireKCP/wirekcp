@@ -14,7 +14,7 @@ require (
 
 require (
 	github.com/charmbracelet/bubbletea v1.3.5
-	github.com/charmbracelet/huh v0.7.0
+	github.com/charmbracelet/huh v0.6.0
 	github.com/charmbracelet/lipgloss v1.1.0
 	github.com/charmbracelet/log v0.4.1
 	github.com/go-ole/go-ole v1.3.0
