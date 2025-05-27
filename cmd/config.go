@@ -35,6 +35,10 @@ var (
 					if err := peerCmd.RunE(cmd, args); err != nil {
 						return err
 					}
+				case frontend.SwitchMode:
+					if err := switchModeCmd.RunE(cmd, args); err != nil {
+						return err
+					}
 				case frontend.Quit:
 					return nil
 				}

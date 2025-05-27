@@ -13,6 +13,7 @@ type Config struct {
 	ListenPort int
 	PrivateKey string
 	Peers      []PeerConfig
+	Mode       string // "kcp" or "udp"
 }
 
 func ReadFromFile(file string) (*Config, error) {

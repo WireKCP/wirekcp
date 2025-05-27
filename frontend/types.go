@@ -8,6 +8,7 @@ const (
 	Add
 	Edit
 	Delete
+	SwitchMode
 	Quit
 )
 

@@ -96,8 +96,54 @@ func newUserspaceEngineAdvanced(conf EngineConfig) (Engine, error) {
 		tundev: conf.TUN,
 	}
 
-	// wgdev takes ownership of tundev, will close it when closed.
-	e.wgdev = wirekcfg.NewDevice(e.tundev, conn.NewStdNetBind(), e.logger)
+	var ifconfig *wirekcfg.Config
+
+	if _, err := os.Stat(conf.configPath); os.IsNotExist(err) {
+		// If the Directory does not exist, create it
+		configFolderPath := filepath.Dir(conf.configPath)
+		if err := os.MkdirAll(configFolderPath, 0755); err != nil {
+			e.logger.Errorf("Failed to create config directory: %v", err)
+			e.Close()
+			return nil, err
+		}
+		ifconfig = &wirekcfg.Config{
+			IPv4CIDR:   "192.168.200.1/24",
+			ListenPort: int(conf.ListenPort),
+			PrivateKey: wirektypes.GeneratePrivateKey(),
+			Mode:       "kcp",
+		}
+		err = ifconfig.WriteToFile(conf.configPath)
+		if err != nil {
+			e.logger.Errorf("Failed to write config file: %v", err)
+			e.Close()
+			return nil, err
+		}
+	} else {
+		ifconfig, err = wirekcfg.ReadFromFile(conf.configPath)
+		if err != nil {
+			e.logger.Errorf("Failed to read config file: %v", err)
+			e.Close()
+			return nil, err
+		}
+		if ifconfig.Mode == "" {
+			ifconfig.Mode = "kcp" // default to KCP mode if not specified
+			ifconfig.WriteToFile(conf.configPath)
+		}
+	}
+
+	switch ifconfig.Mode {
+	case "kcp":
+		e.logger.Verbosef("Using KCP mode for WireKCP")
+		e.wgdev = wirekcfg.NewDevice(e.tundev, conn.NewExtBindKCP(), e.logger)
+	case "udp":
+		e.logger.Verbosef("Using UDP mode for WireKCP")
+		e.wgdev = wirekcfg.NewDevice(e.tundev, conn.NewStdNetBind(), e.logger)
+	default:
+		e.logger.Errorf("Unsupported mode %q in WireKCP config", ifconfig.Mode)
+		e.Close()
+		return nil, fmt.Errorf("unsupported mode %q in WireKCP config", ifconfig.Mode)
+	}
+
 	e.wgdev.Up()
 
 	tunname, err := e.tundev.Name()
@@ -129,36 +175,6 @@ func newUserspaceEngineAdvanced(conf EngineConfig) (Engine, error) {
 	}()
 
 	e.logger.Verbosef("UAPI listener started")
-
-	var ifconfig *wirekcfg.Config
-
-	if _, err = os.Stat(conf.configPath); os.IsNotExist(err) {
-		// If the Directory does not exist, create it
-		configFolderPath := filepath.Dir(conf.configPath)
-		if err := os.MkdirAll(configFolderPath, 0755); err != nil {
-			e.logger.Errorf("Failed to create config directory: %v", err)
-			e.Close()
-			return nil, err
-		}
-		ifconfig = &wirekcfg.Config{
-			IPv4CIDR:   "192.168.200.1/24",
-			ListenPort: int(conf.ListenPort),
-			PrivateKey: wirektypes.GeneratePrivateKey(),
-		}
-		err = ifconfig.WriteToFile(conf.configPath)
-		if err != nil {
-			e.logger.Errorf("Failed to write config file: %v", err)
-			e.Close()
-			return nil, err
-		}
-	} else {
-		ifconfig, err = wirekcfg.ReadFromFile(conf.configPath)
-		if err != nil {
-			e.logger.Errorf("Failed to read config file: %v", err)
-			e.Close()
-			return nil, err
-		}
-	}
 
 	wirekcfg.SetIP(e.tundev, ifconfig)
 
