@@ -31,22 +31,12 @@ func ReadFromFile(file string) (*Config, error) {
 }
 
 func (c *Config) WriteToFile(file string) error {
-	// Check if the file exists overwrite, if not create it
-	var f *os.File
-	if _, err := os.Stat(file); os.IsNotExist(err) {
-		// Create the file if it does not exist
-		f, err = os.Create(file)
-		if err != nil {
-			return err
-		}
-		defer f.Close()
-	} else {
-		f, err = os.OpenFile(file, os.O_RDWR|os.O_TRUNC, 0644)
-		if err != nil {
-			return err
-		}
-		defer f.Close()
+	// Open the file for writing, create if not exists, truncate if exists
+	f, err := os.OpenFile(file, os.O_CREATE|os.O_RDWR|os.O_TRUNC, 0644)
+	if err != nil {
+		return err
 	}
+	defer f.Close()
 	return toml.NewEncoder(f).Encode(c)
 }
 

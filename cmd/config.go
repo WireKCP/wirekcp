@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"runtime"
 	"wirekcp/frontend"
+	"wirekcp/wirekcfg"
 
 	"github.com/charmbracelet/lipgloss"
 	"github.com/inancgumus/screen"
@@ -26,7 +27,11 @@ var (
 				return nil
 			}
 			for {
-				switch frontend.MenuForm() {
+				ifconfig, err := wirekcfg.ReadFromFile(configPath)
+				if err != nil {
+					return fmt.Errorf("failed to read configuration: %w", err)
+				}
+				switch frontend.MenuForm(ifconfig.Mode) {
 				case frontend.Interface:
 					if err := interfaceCmd.RunE(cmd, args); err != nil {
 						return err
