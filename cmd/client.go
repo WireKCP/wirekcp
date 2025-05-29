@@ -64,42 +64,50 @@ var (
 			} else if err != nil {
 				return err
 			} else {
-				serviceController.Stop()
-				var ifconfig *wirekcfg.Config
-				ifconfig, err = wirekcfg.ReadFromFile(configPath)
+				status, err := serviceController.Status()
 				if err != nil {
-					return fmt.Errorf("failed to read config file: %w", err)
+					return err
 				}
-				if ifconfig.Mode == "kcp" {
-					ifconfig.Mode = "udp"
-				} else {
-					ifconfig.Mode = "kcp"
+				if status == service.StatusRunning {
+					cmd.PrintErrln("Please stop the service before switching modes.")
+					return nil
 				}
-				if err = ifconfig.WriteToFile(configPath); err != nil {
-					return fmt.Errorf("failed to write config file: %w", err)
+				if status == service.StatusStopped {
+					var ifconfig *wirekcfg.Config
+					ifconfig, err = wirekcfg.ReadFromFile(configPath)
+					if err != nil {
+						return fmt.Errorf("failed to read config file: %w", err)
+					}
+					if ifconfig.Mode == "kcp" {
+						ifconfig.Mode = "udp"
+					} else {
+						ifconfig.Mode = "kcp"
+					}
+					if err = ifconfig.WriteToFile(configPath); err != nil {
+						return fmt.Errorf("failed to write config file: %w", err)
+					}
+
+					successStyle := lipgloss.NewStyle().
+						Foreground(lipgloss.Color("#00FF00")).
+						Background(lipgloss.Color("#222222")).
+						Bold(true).
+						Padding(1, 4).
+						MarginTop(1).
+						MarginBottom(1).
+						Border(lipgloss.RoundedBorder()).
+						BorderForeground(lipgloss.Color("#00FF00"))
+
+					modeStyle := lipgloss.NewStyle().
+						Foreground(lipgloss.Color("#FFD700")).
+						Bold(true)
+
+					switchedTo := modeStyle.Render(fmt.Sprintf("Switched to %s mode", ifconfig.Mode))
+					pleaseStartService := modeStyle.Render("Please start the service to apply changes.")
+
+					cmd.Println(successStyle.Render("WireKCP mode switched successfully!"))
+					cmd.Println(switchedTo)
+					cmd.Println(pleaseStartService)
 				}
-				if err = serviceController.Start(); err != nil {
-					return fmt.Errorf("failed to start service: %w", err)
-				}
-
-				successStyle := lipgloss.NewStyle().
-					Foreground(lipgloss.Color("#00FF00")).
-					Background(lipgloss.Color("#222222")).
-					Bold(true).
-					Padding(1, 4).
-					MarginTop(1).
-					MarginBottom(1).
-					Border(lipgloss.RoundedBorder()).
-					BorderForeground(lipgloss.Color("#00FF00"))
-
-				modeStyle := lipgloss.NewStyle().
-					Foreground(lipgloss.Color("#FFD700")).
-					Bold(true)
-
-				switchedTo := modeStyle.Render(fmt.Sprintf("Switched to %s mode", ifconfig.Mode))
-
-				cmd.Println(successStyle.Render("WireKCP mode switched successfully!"))
-				cmd.Println(switchedTo)
 			}
 			return nil
 		},
