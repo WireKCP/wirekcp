@@ -35,6 +35,10 @@ var (
 				args := strings.Join(os.Args[1:], " ")
 				cmd.Printf("Starting following command as administrator: %s %s\n", os.Args[0], args)
 				return
+			} else if runtime.GOOS == "windows" && isAdmin() {
+				// Windows service dependencies
+				svcConfig.Dependencies = []string{"Tcpip", "EventLog"}
+				svcConfig.Option["OnFailure"] = "restart"
 			}
 
 			s, err := newSVC(&program{}, svcConfig)

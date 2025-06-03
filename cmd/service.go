@@ -16,6 +16,7 @@ func newSVCConfig() *service.Config {
 		Name:        "wirekcp",
 		DisplayName: "WireKCP",
 		Description: "A KCP-based WireGuard network that connects your devices into a single private network.",
+		Option:      make(service.KeyValue),
 	}
 }
 
