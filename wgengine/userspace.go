@@ -144,7 +144,12 @@ func newUserspaceEngineAdvanced(conf EngineConfig) (Engine, error) {
 		return nil, fmt.Errorf("unsupported mode %q in WireKCP config", ifconfig.Mode)
 	}
 
-	e.wgdev.Up()
+	err := e.wgdev.Up()
+	if err != nil {
+		e.logger.Errorf("Failed to bring up WireKCP device: %v", err)
+		e.Close()
+		return nil, err
+	}
 
 	tunname, err := e.tundev.Name()
 	if err != nil {

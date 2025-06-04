@@ -12,7 +12,7 @@ import (
 )
 
 func setupCloseHandler(logger *device.Logger) {
-	signal.Notify(term, os.Interrupt, windows.SIGTERM, syscall.SIGTERM)
+	signal.Notify(term, os.Interrupt, windows.SIGTERM, windows.SIGINT, windows.SIGKILL, syscall.SIGTERM, syscall.SIGINT)
 	go func() {
 		for range term {
 			logger.Verbosef("Received SIGTERM signal")
