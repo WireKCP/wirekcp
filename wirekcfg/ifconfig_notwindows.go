@@ -3,6 +3,7 @@
 package wirekcfg
 
 import (
+	"net"
 	"wirekcp/wirektun"
 
 	"github.com/vishvananda/netlink"
@@ -27,7 +28,11 @@ func SetIP(tunnel tun.Device, config *Config) error {
 }
 
 func SetIPwithoutTun(cidr string) error {
-	iface, err := netlink.LinkByName(wirektun.DefaultTunName())
+	return SetIPwithTunName(wirektun.DefaultTunName(), cidr)
+}
+
+func SetIPwithTunName(name, cidr string) error {
+	iface, err := netlink.LinkByName(name)
 	if err != nil {
 		return err
 	}
@@ -35,9 +40,31 @@ func SetIPwithoutTun(cidr string) error {
 	if err != nil {
 		return err
 	}
+	oldAddrString := GetIPwithTunName(name)
+	if oldAddrString != "" {
+		oldAddr, err := netlink.ParseAddr(oldAddrString)
+		if err != nil {
+			return err
+		}
+		err = netlink.AddrDel(iface, oldAddr)
+		if err != nil {
+			return err
+		}
+	}
 	err = netlink.AddrAdd(iface, addr)
 	if err != nil {
 		return err
 	}
 	return netlink.LinkSetUp(iface)
+}
+
+func GetIPwithTunName(name string) string {
+	ifc, _ := net.InterfaceByName(name)
+	addrs, _ := ifc.Addrs()
+	for _, a := range addrs {
+		if a.(*net.IPNet).IP.To4() != nil {
+			return a.String()
+		}
+	}
+	return ""
 }

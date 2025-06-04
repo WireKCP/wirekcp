@@ -31,4 +31,20 @@ freebsd:
 windows:
 	GOOS=windows GOARCH=amd64 go build -o $(TARGET_EXEC)$(FILE_EXTENSION)
 
+windows-arm64:
+	GOOS=windows GOARCH=arm64 go build -o $(TARGET_EXEC)$(FILE_EXTENSION)
+
+windows-386:
+	GOOS=windows GOARCH=386 go build -o $(TARGET_EXEC)$(FILE_EXTENSION)
+
+all-binary:
+	@echo "Building for all platforms..."
+	$(MAKE) linux
+	$(MAKE) darwin
+	$(MAKE) darwin-arm64
+	$(MAKE) freebsd
+	$(MAKE) windows
+	$(MAKE) windows-arm64
+	$(MAKE) windows-386
+
 .PHONY: all build clean
