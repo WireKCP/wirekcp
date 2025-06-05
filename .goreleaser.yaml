@@ -46,17 +46,18 @@ archives:
     format_overrides:
       - goos: windows
         format: none
+      - goos: linux
+        format: binary
 nfpms:
   - maintainer: Lim Shi Song <ci220106@student.uthm.edu.my>
     description: a KCP-based VPN client that provides a secure and efficient way to connect to remote networks.
     homepage: https://github.com/wirekcp/wirekcp
     license: MIT
+    file_name_template: '{{ .PackageName }}_{{ .Os }}_{{ .Arch }}{{ with .Arm }}v{{ . }}{{ end }}{{ with .Mips }}_{{ . }}{{ end }}{{ if not (eq .Amd64 "v1") }}{{ .Amd64 }}{{ end }}'
     formats:
       - apk
       - deb
       - rpm
-      - termux.deb
-      - archlinux
 
 release:
   extra_files:
