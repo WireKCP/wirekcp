@@ -3,11 +3,11 @@
 
 ; --- General Installer Settings ---
 Name "WireKCP Installer" ; Name of the installer displayed to the user
-OutFile "WireKCP_Setup.exe" ; Name of the generated installer executable
+OutFile "WireKCP-Installer-Setup-x86_64.exe" ; Name of the generated installer executable
 
 ; Set the default installation directory.
 ; $PROGRAMFILES is a standard NSIS variable pointing to "C:\Program Files" or "C:\Program Files (x86)".
-InstallDir "$PROGRAMFILES\WireKCP"
+InstallDir "$PROGRAMFILES64\WireKCP"
 
 ; Request administrator privileges. This is crucial for writing to C:\Windows\System32.
 RequestExecutionLevel admin
@@ -88,7 +88,7 @@ Section "WireKCP (required)"
 
   ; Copy your main executable to the installation directory.
   ; Replace "wirekcp.exe" with the actual name of your executable.
-  File "wirekcp.exe"
+  File "dist\wirekcp_windows_amd64_v1\wirekcp.exe"
 
   ; Copy wintun.dll to the installation directory.
   File "wintun.dll"

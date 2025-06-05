@@ -1,0 +1,71 @@
+# This is an example .goreleaser.yml file with some sensible defaults.
+# Make sure to check the documentation at https://goreleaser.com
+
+# The lines below are called `modelines`. See `:help modeline`
+# Feel free to remove those if you don't want/need to use them.
+# yaml-language-server: $schema=https://goreleaser.com/static/schema.json
+# vim: set ts=2 sw=2 tw=0 fo=cnqoj
+
+version: 2
+
+before:
+  hooks:
+    - go mod tidy
+
+env_files:
+  github_token: ./.gh_token
+
+builds:
+  - env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+      - windows
+      - darwin
+    hooks:
+      post: >-
+        {{- if eq .Os "windows" }}
+        {{- if eq .Arch "amd64" }}makensis installer_amd64.nsi
+        {{- else if eq .Arch "386" }}makensis installer_386.nsi
+        {{- else }}echo "Skipping NSIS installer generation for unsupported architecture: {{ .Arch }}"
+        {{- end }}
+        {{- else }}echo "Skipping NSIS installer generation for non-Windows OS: {{ .Os }}"
+        {{- end }}
+
+archives:
+  - format: tar.gz
+    # this name template makes the OS and Arch compatible with the results of `uname`.
+    name_template: >-
+      {{ .ProjectName }}_
+      {{- title .Os }}_
+      {{- if eq .Arch "amd64" }}x86_64
+      {{- else if eq .Arch "386" }}i386
+      {{- else }}{{ .Arch }}{{ end }}
+      {{- if .Arm }}v{{ .Arm }}{{ end }}
+    # use zip for windows archives
+    format_overrides:
+      - goos: windows
+        format: none
+nfpms:
+  - maintainer: Lim Shi Song <ci220106@student.uthm.edu.my>
+    description: a KCP-based VPN client that provides a secure and efficient way to connect to remote networks.
+    homepage: https://github.com/wirekcp/wirekcp
+    license: MIT
+    formats:
+      - apk
+      - deb
+      - rpm
+      - termux.deb
+      - archlinux
+
+release:
+  extra_files:
+    - glob: WireKCP-Installer-Setup-x86.exe
+    - glob: WireKCP-Installer-Setup-x86_64.exe
+
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - "^docs:"
+      - "^test:"

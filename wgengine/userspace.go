@@ -137,7 +137,7 @@ func newUserspaceEngineAdvanced(conf EngineConfig) (Engine, error) {
 		e.wgdev = wirekcfg.NewDevice(e.tundev, conn.NewExtBindKCP(), e.logger)
 	case "udp":
 		e.logger.Verbosef("Using UDP mode for WireKCP")
-		e.wgdev = wirekcfg.NewDevice(e.tundev, conn.NewStdNetBind(), e.logger)
+		e.wgdev = wirekcfg.NewDevice(e.tundev, conn.NewDefaultBind(), e.logger)
 	default:
 		e.logger.Errorf("Unsupported mode %q in WireKCP config", ifconfig.Mode)
 		e.Close()
