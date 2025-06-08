@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"runtime"
+	"time"
 
 	"github.com/charmbracelet/log"
 	"github.com/kardianos/service"
@@ -19,13 +20,16 @@ func (p *program) run() {
 	// Run the service
 	err := upCmd.RunE(p.cmd, p.args)
 	if err != nil {
-		stopCh <- 0
+		s, _ := newSVC(p, newSVCConfig())
+		p.Stop(s)
 		return
 	}
 }
 
 func (p *program) Stop(s service.Service) error {
 	stopCh <- 1
+	time.Sleep(time.Second * 2) // Give some time for the service to stop gracefully
+	log.Infof("Stopping service %s", s.String())
 	return nil
 }
 
