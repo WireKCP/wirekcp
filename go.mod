@@ -1,12 +1,12 @@
 module wirekcp
 
-go 1.23.0
+go 1.23.1
 
 toolchain go1.24.3
 
 require (
-	golang.org/x/crypto v0.38.0 // indirect
-	golang.org/x/net v0.40.0 // indirect
+	golang.org/x/crypto v0.39.0 // indirect
+	golang.org/x/net v0.41.0 // indirect
 	golang.org/x/sys v0.33.0
 	golang.zx2c4.com/wintun v0.0.0-20230126152724-0fa3db229ce2 // indirect
 	golang.zx2c4.com/wireguard/windows v0.5.3
@@ -26,7 +26,7 @@ require (
 	github.com/sirupsen/logrus v1.9.3
 	github.com/spf13/cobra v1.9.1
 	github.com/vishvananda/netlink v1.3.1
-	github.com/wirekcp/wireguard-go v0.1.0
+	github.com/wirekcp/wireguard-go v0.1.1
 )
 
 require (
@@ -59,9 +59,10 @@ require (
 	github.com/tjfoc/gmsm v1.4.1 // indirect
 	github.com/wirekcp/kcp-go/v5 v5.6.20 // indirect
 	github.com/xo/terminfo v0.0.0-20220910002029-abceb7e1c41e // indirect
+	github.com/xtaci/kcp-go/v5 v5.6.21 // indirect
 	golang.org/x/exp v0.0.0-20250506013437-ce4c2cf36ca6 // indirect
 	golang.org/x/term v0.32.0 // indirect
-	golang.org/x/text v0.25.0 // indirect
+	golang.org/x/text v0.26.0 // indirect
 )
 
 require (
@@ -72,5 +73,5 @@ require (
 	github.com/spf13/pflag v1.0.6 // indirect
 	github.com/vishvananda/netns v0.0.5 // indirect
 	github.com/wirekcp/wgctrl v0.0.0-20241222071839-cd1864417916
-	golang.org/x/sync v0.14.0 // indirect
+	golang.org/x/sync v0.15.0 // indirect
 )
