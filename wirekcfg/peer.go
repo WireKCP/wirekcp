@@ -1,6 +1,7 @@
 package wirekcfg
 
 import (
+	"bytes"
 	"net"
 	"strings"
 	"wirekcp/wirektypes"
@@ -84,6 +85,38 @@ func IPsNetToString(ipn []net.IPNet) string {
 	return strings.Join(ips, ",")
 }
 
+func PeersToWkPeersConfig(peers []wgtypes.Peer) []PeerConfig {
+	peerConfig := []PeerConfig{}
+	for _, p := range peers {
+		if notEmptyKey(p.PresharedKey) && p.Endpoint != nil {
+			peerConfig = append(peerConfig, PeerConfig{
+				PublicKey:    p.PublicKey.String(),
+				PresharedKey: p.PresharedKey.String(),
+				Endpoint:     p.Endpoint.String(),
+				AllowedIPs:   IPsNetToString(p.AllowedIPs),
+			})
+		} else if !notEmptyKey(p.PresharedKey) && p.Endpoint != nil {
+			peerConfig = append(peerConfig, PeerConfig{
+				PublicKey:  p.PublicKey.String(),
+				Endpoint:   p.Endpoint.String(),
+				AllowedIPs: IPsNetToString(p.AllowedIPs),
+			})
+		} else if notEmptyKey(p.PresharedKey) && p.Endpoint == nil {
+			peerConfig = append(peerConfig, PeerConfig{
+				PublicKey:    p.PublicKey.String(),
+				PresharedKey: p.PresharedKey.String(),
+				AllowedIPs:   IPsNetToString(p.AllowedIPs),
+			})
+		} else {
+			peerConfig = append(peerConfig, PeerConfig{
+				PublicKey:  p.PublicKey.String(),
+				AllowedIPs: IPsNetToString(p.AllowedIPs),
+			})
+		}
+	}
+	return peerConfig
+}
+
 func ToWkPeersConfig(peers []wgtypes.PeerConfig) []PeerConfig {
 	peerConfig := []PeerConfig{}
 	for _, p := range peers {
@@ -118,4 +151,9 @@ func ToWkPeersConfig(peers []wgtypes.PeerConfig) []PeerConfig {
 		}
 	}
 	return peerConfig
+}
+
+func notEmptyKey(key wgtypes.Key) bool {
+	emptyKey := wgtypes.Key{}
+	return !bytes.Equal(key[:], emptyKey[:])
 }

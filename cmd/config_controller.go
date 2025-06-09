@@ -77,7 +77,8 @@ var (
 			if err != nil {
 				return err
 			}
-			fileConfig.Peers = wirekcfg.ToWkPeersConfig(config.Peers)
+			clientDevice, _ = client.Device(clientDevice.Name)
+			fileConfig.Peers = wirekcfg.PeersToWkPeersConfig(clientDevice.Peers)
 			return fileConfig.WriteToFile(configPath)
 		},
 	}
@@ -92,14 +93,18 @@ var (
 				return err
 			}
 			config := frontend.PeerEditForm(clientDevice)
+			if len(config.Peers) == 0 {
+				return nil
+			}
 			if err := client.ConfigureDevice(clientDevice.Name, config); err != nil {
 				return err
 			}
+			clientDevice, _ = client.Device(clientDevice.Name)
 			fileConfig, err := wirekcfg.ReadFromFile(configPath)
 			if err != nil {
 				return err
 			}
-			fileConfig.Peers = wirekcfg.ToWkPeersConfig(config.Peers)
+			fileConfig.Peers = wirekcfg.PeersToWkPeersConfig(clientDevice.Peers)
 			return fileConfig.WriteToFile(configPath)
 		},
 	}
