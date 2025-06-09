@@ -88,6 +88,7 @@ func ToWkPeersConfig(peers []wgtypes.PeerConfig) []PeerConfig {
 	peerConfig := []PeerConfig{}
 	for _, p := range peers {
 		if p.Remove {
+			println("Skipping peer with Remove flag set to true")
 			continue
 		}
 		if p.PresharedKey != nil && p.Endpoint != nil {

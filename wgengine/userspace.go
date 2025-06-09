@@ -119,11 +119,13 @@ func newUserspaceEngineAdvanced(conf EngineConfig) (Engine, error) {
 			return nil, err
 		}
 	} else {
-		ifconfig, err = wirekcfg.ReadFromFile(conf.configPath)
-		if err != nil {
-			e.logger.Errorf("Failed to read config file: %v", err)
-			e.Close()
-			return nil, err
+		ifconfig, _ = wirekcfg.ReadFromFile(conf.configPath)
+		if ifconfig == nil {
+			ifconfig = &wirekcfg.Config{
+				IPv4CIDR:   "192.168.200.1/24",
+				ListenPort: int(conf.ListenPort),
+				PrivateKey: wirektypes.GeneratePrivateKey(),
+			}
 		}
 		if ifconfig.Mode == "" {
 			ifconfig.Mode = "kcp" // default to KCP mode if not specified
