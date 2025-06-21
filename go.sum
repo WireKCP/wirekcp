@@ -142,6 +142,8 @@ github.com/wirekcp/wgctrl v0.0.0-20241222071839-cd1864417916 h1:8JqE5p+LQlko9oUM
 github.com/wirekcp/wgctrl v0.0.0-20241222071839-cd1864417916/go.mod h1:Jc9MHPaXTeO/UU2gJhA7lkV4wD+E0xI4XNrVgRy9A58=
 github.com/wirekcp/wireguard-go v0.1.1 h1:mqroBv2JaS1K+rRZ9VqM722xVZO+KdQ7egu/3+DC4B8=
 github.com/wirekcp/wireguard-go v0.1.1/go.mod h1:lbhybFIK+08WHWPMD1qMagxZ/fgbvS0VrHGg+yuLgP4=
+github.com/wirekcp/wireguard-go v0.1.2 h1:unAhaMvq8bo3KSodZhVwYDOKqiVRQZ0mDMCKP2QxhBQ=
+github.com/wirekcp/wireguard-go v0.1.2/go.mod h1:lbhybFIK+08WHWPMD1qMagxZ/fgbvS0VrHGg+yuLgP4=
 github.com/xo/terminfo v0.0.0-20220910002029-abceb7e1c41e h1:JVG44RsyaB9T2KIHavMF/ppJZNG9ZpyihvCd0w101no=
 github.com/xo/terminfo v0.0.0-20220910002029-abceb7e1c41e/go.mod h1:RbqR21r5mrJuqunuUZ/Dhy/avygyECGrLceyNeo4LiM=
 github.com/xtaci/kcp-go/v5 v5.6.21 h1:ypEakZSFGFAY9P0PYNylUVSftbTFQCKGKaR0H20q6sM=
