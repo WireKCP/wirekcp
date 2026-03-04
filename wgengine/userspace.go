@@ -1,11 +1,13 @@
 package wgengine
 
 import (
+	"context"
 	"fmt"
 	"net"
 	"os"
 	"path/filepath"
 	"sync"
+	"time"
 
 	// "wirekcp/ipc/namedpipe"
 	"wirekcp/wirekcfg"
@@ -34,10 +36,13 @@ type EngineConfig struct {
 type userspaceEngine struct {
 	logger *device.Logger
 	reqCh  chan struct{}
-	waitCh chan struct{} // chan is closed when first Close call completes; contrast with closing bool
 	tundev tun.Device
 	wgdev  *device.Device
 	uapi   net.Listener
+
+	// Context and cancellation - using standard Go library context
+	ctx    context.Context
+	cancel context.CancelFunc
 
 	// localAddrs is the set of IP addresses assigned to the local
 	// tunnel interface. It's used to reflect local packets
@@ -49,8 +54,7 @@ type userspaceEngine struct {
 	//lastEngineSigFull   string // of full wireguard config
 	//lastEngineSigTrim   string // of trimmed wireguard config
 
-	mu      sync.Mutex // guards following; see lock order comment below
-	closing bool       // Close was called (even if we're still closing)
+	mu sync.Mutex // guards following; see lock order comment below
 	//statusCallback StatusCallback
 	//peerSequence   []wgcfg.Key
 	//endpoints      []string
@@ -66,13 +70,31 @@ func NewUserspaceEngine(logger *device.Logger, tunname string, listenPort uint16
 
 	logger.Verbosef("Starting userspace wireguard engine with tun device %q", tunname)
 
-	tun, name, err := wirektun.New(logger, tunname)
-	if err != nil {
-		wirektun.Diagnose(logger, tunname, err)
-		logger.Verbosef("CreateTUN: %v", err)
-		return nil, err
+	// Retry TUN creation with exponential backoff
+	// This handles startup scenarios where drivers may not be ready immediately
+	const maxRetries = 5
+	var tun tun.Device
+	var name string
+	var err error
+
+	for attempt := 0; attempt < maxRetries; attempt++ {
+		tun, name, err = wirektun.New(logger, tunname)
+		if err == nil {
+			logger.Verbosef("CreateTUN %q: ok", name)
+			break
+		}
+
+		if attempt < maxRetries-1 {
+			// Exponential backoff: 1s, 2s, 4s, 8s
+			backoffDuration := time.Duration(1<<uint(attempt)) * time.Second
+			logger.Verbosef("CreateTUN attempt %d failed: %v; retrying in %v", attempt+1, err, backoffDuration)
+			time.Sleep(backoffDuration)
+		} else {
+			wirektun.Diagnose(logger, tunname, err)
+			logger.Verbosef("CreateTUN: %v", err)
+			return nil, err
+		}
 	}
-	logger.Verbosef("CreateTUN %q: ok", name)
 
 	conf := EngineConfig{
 		Logger:     logger,
@@ -89,11 +111,13 @@ func NewUserspaceEngine(logger *device.Logger, tunname string, listenPort uint16
 }
 
 func newUserspaceEngineAdvanced(conf EngineConfig) (Engine, error) {
+	ctx, cancel := context.WithCancel(context.Background())
 	e := &userspaceEngine{
 		logger: conf.Logger,
 		reqCh:  make(chan struct{}, 1),
-		waitCh: make(chan struct{}),
 		tundev: conf.TUN,
+		ctx:    ctx,
+		cancel: cancel,
 	}
 
 	var ifconfig *wirekcfg.Config
@@ -198,13 +222,12 @@ func newUserspaceEngineAdvanced(conf EngineConfig) (Engine, error) {
 }
 
 func (e *userspaceEngine) Close() {
-	e.mu.Lock()
-	if e.closing {
-		e.mu.Unlock()
+	select {
+	case <-e.ctx.Done():
+		// Already closed
 		return
+	default:
 	}
-	e.closing = true
-	e.mu.Unlock()
 
 	if e.uapi != nil {
 		e.uapi.Close()
@@ -212,11 +235,15 @@ func (e *userspaceEngine) Close() {
 	e.wgdev.Close()
 	e.logger.Verbosef("Shutting down userspace engine")
 
-	// Shut down pingers after tundev is closed (by e.wgdev.Close) so the
-	// synchronous close does not get stuck on InjectOutbound.
-	close(e.waitCh)
+	// Signal closure via context cancellation
+	e.cancel()
 }
 
 func (e *userspaceEngine) Wait() chan struct{} {
-	return e.waitCh
+	done := make(chan struct{})
+	go func() {
+		<-e.ctx.Done()
+		close(done)
+	}()
+	return done
 }

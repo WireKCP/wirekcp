@@ -17,6 +17,18 @@ func (p *program) Start(s service.Service) error {
 }
 
 func (p *program) run() {
+	// Set current program reference for upCmd to access
+	currentProgram = p
+	serviceMode = true
+	defer func() { currentProgram = nil }()
+
+	// Wait briefly on Windows to allow network drivers to fully initialize
+	// This helps prevent "device not ready" errors on startup
+	if runtime.GOOS == "windows" {
+		log.Infof("Waiting for network drivers to initialize...")
+		time.Sleep(5 * time.Second)
+	}
+
 	// Run the service
 	err := upCmd.RunE(p.cmd, p.args)
 	if err != nil {
@@ -27,16 +39,18 @@ func (p *program) run() {
 }
 
 func (p *program) Stop(s service.Service) error {
-	stopCh <- 1
-	time.Sleep(time.Second * 2) // Give some time for the service to stop gracefully
 	log.Infof("Stopping service %s", s.String())
+	// Stop the engine gracefully using context cancellation
+	if p.engine != nil {
+		p.engine.Close()
+	}
 	return nil
 }
 
 var (
 	runCmd = &cobra.Command{
 		Use:   "run",
-		Short: "runs wirekcp as service",
+		Short: "manually runs WireKCP in service mode (for debugging)",
 		Run: func(cmd *cobra.Command, args []string) {
 			prg := &program{
 				cmd:  cmd,
@@ -52,7 +66,6 @@ var (
 				cmd.PrintErrln(err)
 				return
 			}
-			cmd.Println("Wirekcp service is running")
 		},
 	}
 )

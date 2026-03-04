@@ -1,14 +1,17 @@
 package cmd
 
 import (
+	"wirekcp/wgengine"
+
 	"github.com/kardianos/service"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
 
 type program struct {
-	cmd  *cobra.Command
-	args []string
+	cmd    *cobra.Command
+	args   []string
+	engine wgengine.Engine
 }
 
 func newSVCConfig() *service.Config {

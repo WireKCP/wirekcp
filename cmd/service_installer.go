@@ -45,8 +45,7 @@ var (
 					"iphlpsvc",
 				}
 				svcConfig.Option["OnFailure"] = "restart"
-				// svcConfig.Option["OnFailureDelayDuration"] = "10s"
-				svcConfig.Option["DelayedAutoStart"] = true
+				svcConfig.Option["DelayedAutoStart"] = true // Delay startup to allow drivers to initialize
 			}
 
 			s, err := newSVC(&program{}, svcConfig)

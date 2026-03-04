@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"time"
 	"wirekcp/frontend"
 	"wirekcp/wirekcfg"
 	"wirekcp/wirektun"
@@ -59,7 +60,7 @@ var (
 				requestAdminCmd.Execute()
 				return nil
 			}
-			if serviceController, err := newSVC(&program{}, newSVCConfig()); err == service.ErrNotInstalled {
+			if serviceController, err := newSVC(currentProgram, newSVCConfig()); err == service.ErrNotInstalled {
 				cmd.PrintErrln("Service is not installed. Please run 'wirekcp service install' first.")
 			} else if err != nil {
 				return err
@@ -69,8 +70,12 @@ var (
 					return err
 				}
 				if status == service.StatusRunning {
-					cmd.PrintErrln("Please stop the service before switching modes.")
-					return nil
+					serviceController.Stop()
+					if status, err = serviceController.Status(); err != nil {
+						cmd.PrintErrln("Failed to stop service: ", err)
+						return err
+					}
+					time.Sleep(2 * time.Second) // Wait for the service to stop completely
 				}
 				if status == service.StatusStopped {
 					var ifconfig *wirekcfg.Config
@@ -101,12 +106,22 @@ var (
 						Foreground(lipgloss.Color("#FFD700")).
 						Bold(true)
 
-					switchedTo := modeStyle.Render(fmt.Sprintf("Switched to %s mode", ifconfig.Mode))
-					pleaseStartService := modeStyle.Render("Please start the service to apply changes.")
+					screen.Clear()
+					screen.MoveTopLeft()
 
 					cmd.Println(successStyle.Render("WireKCP mode switched successfully!"))
-					cmd.Println(switchedTo)
-					cmd.Println(pleaseStartService)
+					cmd.Println(modeStyle.Render(fmt.Sprintf("Switched to %s mode", ifconfig.Mode)))
+					cmd.Println(modeStyle.Render("Starting service...\n"))
+
+					if err = serviceController.Start(); err != nil {
+						cmd.PrintErrln("Failed to start service: ", err)
+						return err
+					}
+
+					cmd.Println(modeStyle.Render("Service started successfully!\n"))
+					cmd.Println(modeStyle.Render("Press Enter to continue..."))
+					fmt.Scanln()
+
 				}
 			}
 			return nil

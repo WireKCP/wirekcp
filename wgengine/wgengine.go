@@ -32,7 +32,7 @@ type Engine interface {
 	// new Engine.
 	Close()
 
-	// Wait waits until the Engine's Close method is called or the
+	// Waits until the Engine's Close method is called or the
 	// engine aborts with an error.
 	Wait() chan struct{}
 

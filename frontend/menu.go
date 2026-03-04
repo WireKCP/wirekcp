@@ -13,7 +13,7 @@ func MenuForm(mode string) Selection {
 		huh.NewGroup(huh.NewSelect[Selection]().Title("Main Menu").Options(
 			huh.NewOption("Interface Configuration", Interface),
 			huh.NewOption("Peer Configuration", Peer),
-			huh.NewOption(fmt.Sprintf("Switch Mode '%s'", mode), SwitchMode),
+			huh.NewOption(fmt.Sprintf("Switch Mode (Current: %s)", mode), SwitchMode),
 			huh.NewOption("Quit", Quit)).Value(&selection),
 		)).WithProgramOptions(tea.WithAltScreen()).Run()
 	return selection

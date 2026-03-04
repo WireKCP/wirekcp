@@ -12,6 +12,12 @@ import (
 )
 
 var (
+	// currentProgram holds reference to current program instance for service mode
+	currentProgram *program
+	serviceMode    bool = false
+)
+
+var (
 	upCmd = &cobra.Command{
 		Use:   "up",
 		Short: "Start WireKCP",
@@ -44,6 +50,11 @@ var (
 			}
 			defer engine.Close()
 
+			// Store engine reference if running as a service
+			if currentProgram != nil {
+				currentProgram.engine = engine
+			}
+
 			setupCloseHandler(logger)
 
 			select {
@@ -52,7 +63,6 @@ var (
 			case <-engine.Wait():
 			}
 
-			// clean up
 			engine.Close()
 			return nil
 		},
