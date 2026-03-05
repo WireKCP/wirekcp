@@ -16,7 +16,7 @@ type program struct {
 
 func newSVCConfig() *service.Config {
 	return &service.Config{
-		Name:        "wirekcp",
+		Name:        "WireKCP",
 		DisplayName: "WireKCP",
 		Description: "A KCP-based WireGuard network that connects your devices into a single private network.",
 		Option:      make(service.KeyValue),

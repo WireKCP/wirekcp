@@ -19,7 +19,6 @@ func (p *program) Start(s service.Service) error {
 func (p *program) run() {
 	// Set current program reference for upCmd to access
 	currentProgram = p
-	serviceMode = true
 	defer func() { currentProgram = nil }()
 
 	// Wait briefly on Windows to allow network drivers to fully initialize

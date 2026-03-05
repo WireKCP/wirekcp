@@ -14,7 +14,6 @@ import (
 var (
 	// currentProgram holds reference to current program instance for service mode
 	currentProgram *program
-	serviceMode    bool = false
 )
 
 var (
