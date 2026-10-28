@@ -14,6 +14,7 @@ type Config struct {
 	PrivateKey string
 	Peers      []PeerConfig
 	Mode       string // "kcp" or "udp"
+	KCPProfile string
 }
 
 func ReadFromFile(file string) (*Config, error) {

@@ -159,8 +159,16 @@ func newUserspaceEngineAdvanced(conf EngineConfig) (Engine, error) {
 
 	switch ifconfig.Mode {
 	case "kcp":
-		e.logger.Verbosef("Using KCP mode for WireKCP")
-		e.wgdev = wirekcfg.NewDevice(e.tundev, conn.NewExtBindKCP(), e.logger)
+		bind, bindErr := conn.NewExtBindKCPWithOptions(conn.KCPOptions{
+			Profile: ifconfig.KCPProfile,
+		})
+		if bindErr != nil {
+			e.tundev.Close()
+			e.cancel()
+			return nil, bindErr
+		}
+		e.logger.Verbosef("Using KCP mode for WireKCP: profile=%q", ifconfig.KCPProfile)
+		e.wgdev = wirekcfg.NewDevice(e.tundev, bind, e.logger)
 	case "udp":
 		e.logger.Verbosef("Using UDP mode for WireKCP")
 		e.wgdev = wirekcfg.NewDevice(e.tundev, conn.NewDefaultBind(), e.logger)
